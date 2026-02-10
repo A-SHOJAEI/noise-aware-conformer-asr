@@ -1,0 +1,56 @@
+# Ablation: disable SpecAugment (time/freq masking off).
+seed: 1337
+deterministic: false
+device: auto
+
+data:
+  kind: librispeech
+  train_manifest: data/manifests/train-960.jsonl
+  dev_manifest: data/manifests/dev-clean.jsonl
+  test_manifest: data/manifests/test-clean.jsonl
+  sample_rate: 16000
+
+augment:
+  enabled: true
+  additive_noise: true
+  snr_db_choices: [0, 5, 10, 15, 20]
+  reverb: true
+  musan_root: data/raw/musan
+  rirs_root: data/raw/RIRS_NOISES
+
+specaugment:
+  enabled: false
+  time_mask_param: 80
+  freq_mask_param: 27
+  num_time_masks: 2
+  num_freq_masks: 2
+
+tokenizer:
+  kind: char
+
+model:
+  kind: conformer_ctc
+  vocab_size: 0
+  d_model: 256
+  n_heads: 4
+  num_layers: 16
+  ff_mult: 4
+  conv_kernel: 31
+  dropout: 0.1
+  noise_conditioning:
+    enabled: true
+    embed_dim: 64
+
+train:
+  epochs: 50
+  batch_size: 16
+  num_workers: 8
+  lr: 2.0e-3
+  weight_decay: 1.0e-4
+  grad_clip_norm: 5.0
+  log_every_steps: 50
+  amp: true
+
+eval:
+  corruptions: ["clean", "noise_snr_sweep", "reverb_only", "noise_plus_reverb"]
+

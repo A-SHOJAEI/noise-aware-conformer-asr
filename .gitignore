@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+data/
+runs/
+artifacts/
+
+*.tar.gz
+*.zip
+*.arpa
+*.arpa.gz
+

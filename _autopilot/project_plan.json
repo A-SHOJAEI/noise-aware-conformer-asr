@@ -1,0 +1,76 @@
+{
+  "repo_name": "noise-aware-conformer-asr",
+  "title": "Noise-Aware Conformer-CTC ASR: Robustness Gains Without Clean-Set Regression",
+  "one_liner": "Train a noise-aware Conformer-CTC ASR model on LibriSpeech and quantify robustness improvements under controlled noise+reverb corruption with rigorous ablations.",
+  "research_question": "Can explicit noise-conditioning (learned from the input waveform) improve ASR robustness to additive noise and reverberation while preserving LibriSpeech test-clean accuracy, compared to standard augmentation-only training and a wav2vec 2.0 baseline?",
+  "dataset": {
+    "name": "LibriSpeech ASR corpus + MUSAN noise + OpenSLR RIRs (RIRS_NOISES) (+ optional LibriSpeech 4-gram LM for decoding)",
+    "urls": [
+      "https://www.openslr.org/resources/12/train-clean-100.tar.gz",
+      "https://www.openslr.org/resources/12/train-clean-360.tar.gz",
+      "https://www.openslr.org/resources/12/train-other-500.tar.gz",
+      "https://www.openslr.org/resources/12/dev-clean.tar.gz",
+      "https://www.openslr.org/resources/12/dev-other.tar.gz",
+      "https://www.openslr.org/resources/12/test-clean.tar.gz",
+      "https://www.openslr.org/resources/12/test-other.tar.gz",
+      "https://www.openslr.org/resources/17/musan.tar.gz",
+      "https://openslr.trmal.net/resources/28/rirs_noises.zip",
+      "https://openslr.trmal.net/resources/11/4-gram.arpa.gz"
+    ],
+    "license": "LibriSpeech: CC BY 4.0; MUSAN: CC BY 4.0; RIRS_NOISES: Apache 2.0; LibriSpeech LM resources: Public domain",
+    "approx_size_gb": 140.0,
+    "ingestion_notes": "Download/extract LibriSpeech train/dev/test tarballs; parse speaker/chapter structure to build JSONL manifests with absolute paths and normalized transcripts. MUSAN + RIRS_NOISES are used only for on-the-fly corruption (SNR sweep + random RIR convolution). Keep evaluation sets immutable, and generate deterministic corrupted test variants by fixed RNG seeds. Optional: use the provided 4-gram ARPA for beam-search decoding to report WER with and without an LM."
+  },
+  "method": {
+    "model": "PyTorch Conformer encoder + CTC head, trained on 80-dim log-mel features with SpecAugment; add a lightweight noise-condition module: an auxiliary branch predicts a low-dim noise embedding (and optionally SNR bin) from early encoder states, and FiLM-modulates later encoder blocks with this embedding.",
+    "baseline": "wav2vec 2.0 base (CTC) fine-tuning on LibriSpeech 960h using identical transcript normalization and identical decoding settings (greedy + optional 4-gram beam).",
+    "ablations": [
+      "Remove noise-conditioning (same Conformer capacity, no FiLM modulation) to isolate the effect beyond augmentation.",
+      "No reverb augmentation (disable RIR convolution) while keeping additive noise, to measure which corruption drives gains.",
+      "Disable SpecAugment (time/freq masking off) to quantify interaction between SpecAugment and noise-conditioning."
+    ],
+    "metrics": [
+      "WER on LibriSpeech test-clean and test-other (primary).",
+      "Robust WER under corruption: additive noise at SNR {0, 5, 10, 15, 20} dB and reverb-only, plus combined noise+reverb (report mean and worst-case WER).",
+      "Relative clean-set regression (delta WER vs baseline on test-clean).",
+      "Inference efficiency: real-time factor (RTF) and utterances/sec on a single RTX 3090 for batch sizes {1, 8, 32}."
+    ]
+  },
+  "compute": {
+    "gpus": 2,
+    "expected_hours": 42.0
+  },
+  "risks": [
+    "Disk usage is large (extracted audio + caches); plan for 250GB+ free space if you cache features.",
+    "Training time is sensitive to audio decoding and dataloader throughput; mp3/flac decode and augmentation can bottleneck without enough CPU workers and pinned memory.",
+    "WER is highly dependent on text normalization; inconsistent normalization across runs can invalidate comparisons.",
+    "Beam-search + LM can hide acoustic-model differences; must report greedy and LM-decoded WER.",
+    "Robustness results can be noisy unless corruption is deterministic and SNR/reverb protocols are fixed."
+  ],
+  "execution_steps": [
+    "Create env: `python3 -m venv .venv && source .venv/bin/activate && pip install -U pip wheel`.",
+    "Install deps: `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 && pip install lightning hydra-core jiwer sentencepiece kenlm tensorboard`.",
+    "Download data: `python -m asr.data.download_librispeech --out data/raw` and `python -m asr.data.download_augment --musan --rirs --out data/augment` (fetches the OpenSLR URLs automatically).",
+    "Build manifests: `python -m asr.data.make_manifests --librispeech_root data/raw/LibriSpeech --out data/manifests --normalize librispeech`.",
+    "Train baseline (wav2vec2-CTC): `torchrun --nproc_per_node=2 -m asr.train.wav2vec2_ctc experiment=baseline_w2v2 data=ls960`.",
+    "Train main model (noise-aware Conformer-CTC): `torchrun --nproc_per_node=2 -m asr.train.conformer_ctc experiment=noise_aware_film data=ls960 augment=musan+rirs`.",
+    "Run ablations: repeat Conformer training with configs `experiment=conformer_no_condition`, `augment=musan_only`, `augment=none_specaug_off` and keep all other knobs fixed.",
+    "Evaluate: `python -m asr.eval.wer --ckpt <path> --test_sets test-clean,test-other --corruptions clean,noise_snr_sweep,reverb_only,noise_plus_reverb --decode greedy` and optionally `--decode beam --arpa data/lm/4-gram.arpa.gz`.",
+    "Aggregate results + plots: `python -m asr.reporting.summarize --runs runs/ --out reports/robustness_table.json` (produces a single table with clean/robust WER, deltas, and RTF)."
+  ],
+  "generated_at_utc": "2026-02-10 12:26:52 UTC",
+  "hardware": {
+    "cpu_cores": 24,
+    "cpu_threads": 48,
+    "ram_gb": 251.59,
+    "gpu_count": 2,
+    "gpu_names": [
+      "NVIDIA GeForce RTX 3090",
+      "NVIDIA GeForce RTX 3090"
+    ],
+    "gpu_vram_gb": [
+      24.0,
+      24.0
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+# Prefer CPU-only PyTorch wheels by default to keep installs lightweight and portable.
+# CUDA users can install matching CUDA wheels manually (see README.md).
+--index-url https://download.pytorch.org/whl/cpu
+--extra-index-url https://pypi.org/simple
+
+# Core
+numpy==1.26.4
+PyYAML==6.0.1
+requests==2.32.3
+tqdm==4.66.4
+soundfile==0.12.1
+jiwer==3.0.4
+
+# PyTorch / Audio
+# CPU wheels are the most portable default; CUDA users can install the matching CUDA wheels manually.
+torch==2.4.1
+torchaudio==2.4.1

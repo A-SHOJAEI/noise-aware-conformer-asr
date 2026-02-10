@@ -1,0 +1,12 @@
+from __future__ import annotations
+
+from typing import Literal
+
+import torch
+
+
+def resolve_device(device: str) -> torch.device:
+    if device == "auto":
+        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    return torch.device(device)
+

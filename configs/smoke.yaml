@@ -1,0 +1,57 @@
+# Fast, local, end-to-end config used by `make all`.
+seed: 1337
+deterministic: false
+device: auto
+
+data:
+  kind: smoke
+  root: data/smoke
+  train_manifest: data/smoke/manifests/train.jsonl
+  dev_manifest: data/smoke/manifests/dev.jsonl
+  test_manifest: data/smoke/manifests/test.jsonl
+  sample_rate: 16000
+
+augment:
+  enabled: true
+  # Smoke uses synthetic gaussian noise to exercise the codepath.
+  additive_noise: true
+  snr_db_choices: [10, 20]
+  reverb: false
+
+specaugment:
+  enabled: true
+  time_mask_param: 8
+  freq_mask_param: 8
+  num_time_masks: 1
+  num_freq_masks: 1
+
+tokenizer:
+  kind: char
+
+model:
+  kind: conformer_ctc
+  vocab_size: 0  # inferred from tokenizer
+  d_model: 96
+  n_heads: 4
+  num_layers: 2
+  ff_mult: 4
+  conv_kernel: 15
+  dropout: 0.1
+
+  noise_conditioning:
+    enabled: true
+    embed_dim: 32
+
+train:
+  epochs: 2
+  batch_size: 4
+  num_workers: 0
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  grad_clip_norm: 1.0
+  log_every_steps: 10
+  amp: false
+
+eval:
+  corruptions: ["clean"]
+

@@ -1,0 +1,67 @@
+{
+  "run_dir": "runs/smoke",
+  "model_kind": "conformer_ctc",
+  "checkpoint": "best.pt",
+  "meta": {
+    "created_at_unix": 1770727555.263089,
+    "git_commit": "4339b34fe7df07c49402e52d72c88f41f34a8796",
+    "seed": 1337,
+    "deterministic": false,
+    "device": "cpu",
+    "model_kind": "conformer_ctc",
+    "tokenizer": {
+      "kind": "char",
+      "vocab": [
+        "<blk>",
+        "|",
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h",
+        "i",
+        "j",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t",
+        "u",
+        "v",
+        "w",
+        "x",
+        "y",
+        "z",
+        "'"
+      ]
+    }
+  },
+  "decode": {
+    "kind": "greedy_ctc"
+  },
+  "eval": {
+    "sets": {
+      "test": {
+        "manifest": "data/smoke/manifests/test.jsonl",
+        "corruptions": {
+          "clean": {
+            "wer": 1.0,
+            "rtf": 0.0068476200103759766,
+            "num_utts": 1,
+            "wall_time_s": 0.0068476200103759766
+          }
+        }
+      }
+    }
+  },
+  "_autopilot_runtime_seconds": 4.96,
+  "_autopilot_ran_at_utc": "2026-02-10 12:45:57 UTC"
+}

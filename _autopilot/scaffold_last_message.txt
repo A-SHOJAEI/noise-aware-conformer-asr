@@ -1,0 +1,18 @@
+Implemented a standalone, runnable research repo in `/home/alireza/research-autopilot/generated_projects/noise-aware-conformer-asr` driven by `_autopilot/project_plan.json`.
+
+Key pieces:
+- Data download + checksum verification: `asr/data/download_openslr.py`, `asr/data/download_utils.py`, `asr/data/openslr_resources.py` (MD5s wired in where available).
+- Training (PyTorch) with reproducibility controls: `asr/train.py`, `asr/utils/repro.py` (seed + optional deterministic flags + seeded DataLoader workers).
+- Models:
+  - Conformer-CTC with FiLM noise-conditioning from early encoder states: `asr/models/conformer_ctc.py`
+  - Baseline wav2vec2 base CTC: `asr/models/wav2vec2_ctc.py`
+  - Ablation configs exactly as in the plan are included under `configs/experiments/` (no-condition, musan-only, specaug-off).
+- Evaluation + reporting:
+  - `asr/eval.py` writes `artifacts/results.json`
+  - `asr/report.py` writes `artifacts/report.md`
+- Makefile targets (smoke-fast by default): `Makefile` with `setup`, `data`, `train`, `eval`, `report`, `all`.
+- Robust venv bootstrap for Ubuntu PEP 668 + missing ensurepip: `scripts/bootstrap_venv.sh` uses `python3 -m venv --without-pip` + downloads `get-pip.py`, then installs via `.venv/bin/pip` only.
+- `configs/smoke.yaml` + `make all` runs end-to-end quickly on a tiny synthetic dataset (no large downloads).
+- Pinned deps in `requirements.txt`, forcing CPU PyTorch wheels by default via the PyTorch CPU index.
+
+Verified locally: `make all` completes and produces `artifacts/results.json` + `artifacts/report.md`.
