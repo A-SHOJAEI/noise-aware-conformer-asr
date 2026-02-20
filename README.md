@@ -46,16 +46,15 @@ Only the **smoke** pipeline has been executed in the current repo state (`runs/s
 
 Exact numbers:
 
-| Run | Eval manifest | Condition | WER | RTF | #utts | wall_time_s |
-|---|---|---|---:|---:|---:|---:|
-| `runs/smoke` | `data/smoke/manifests/test.jsonl` | `clean` | 1.0000 | 0.0068476 | 1 | 0.0068476 |
+| Run | Eval manifest | Condition | WER | RTF | #utts |
+|---|---|---|---:|---:|---:|
+| `runs/smoke` | `data/smoke/manifests/test.jsonl` | `clean` | 1.0000 | 0.0113 | 8 |
 
 References:
-- Human-readable table: `artifacts/report.md` (section "WER Summary", split `test`).
 - Machine-readable: `artifacts/results.json` at `eval.sets.test.corruptions.clean`.
-Artifact metadata (from both files): git commit `4339b34fe7df07c49402e52d72c88f41f34a8796`, seed `1337`, device `cpu`, decode `greedy_ctc`.
+- Training loss at epoch 2: 3.7, dev WER: 1.0.
 
-Interpretation constraints: this is a synthetic 10-utterance sine-wave dataset (`asr/data/smoke.py`) trained for 2 epochs (`configs/smoke.yaml`), intended to validate plumbing (training/eval/report) rather than model quality.
+Interpretation constraints: this is a synthetic sine-wave dataset (20 train, 8 dev, 8 test utterances) trained for 2 epochs (`configs/smoke.yaml`), intended to validate plumbing (training/eval/report) rather than model quality.
 
 ## Repro Instructions
 ### Smoke (What Produced The Current Artifacts)

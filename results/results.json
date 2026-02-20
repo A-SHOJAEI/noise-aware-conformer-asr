@@ -1,0 +1,19 @@
+{
+  "project": "noise-aware-conformer-asr",
+  "config": "smoke",
+  "model": "conformer_ctc",
+  "dataset": "synthetic_sine (20 train, 8 dev, 8 test utterances)",
+  "training": {
+    "epochs": 2,
+    "final_train_loss": 3.7,
+    "dev_wer": 1.0
+  },
+  "test": {
+    "clean": {
+      "wer": 1.0,
+      "rtf": 0.0113,
+      "num_utts": 8
+    }
+  },
+  "notes": "WER=1.0 is expected on synthetic sine-wave data with only 2 epochs of training on 20 utterances. The smoke run validates the full pipeline (data generation, noise augmentation, conformer training with noise conditioning, CTC decoding, evaluation)."
+}
